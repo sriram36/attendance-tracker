@@ -53,6 +53,7 @@
         .interactive-button { transition: transform 0.2s ease-out; }
         .interactive-button:hover { transform: scale(1.05); }
         .attendance-btn:not(.active):hover { background-color: var(--bg-interactive-hover); transform: scale(1.03); }
+        .attendance-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .view-history-btn .arrow-icon { opacity: 0; transition: opacity 0.2s, transform 0.2s; transform: translateX(-4px); }
         .view-history-btn:hover .arrow-icon { opacity: 1; transform: translateX(0); }
 
@@ -159,7 +160,7 @@
         import { getFirestore, collection, query, onSnapshot, serverTimestamp, setDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
-       const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyBn7aLWWtpSPRqvYhSmBIyixBTdNHEd0JQ",
   authDomain: "my-class-attendance-tracker.firebaseapp.com",
   projectId: "my-class-attendance-tracker",
@@ -282,6 +283,20 @@
             const todaysClasses = timetable[dayOfWeek] || [];
             scheduleCardsEl.innerHTML = ''; 
 
+            // BUG FIX: Check if the date being rendered is actually today
+            const today = new Date();
+            const isToday = date.toDateString() === today.toDateString();
+            const disabledAttr = isToday ? '' : 'disabled';
+            const holidayBtnDisabled = date > today; // Disable holiday button for future dates
+
+            markHolidayBtn.disabled = holidayBtnDisabled;
+            if (holidayBtnDisabled) {
+                markHolidayBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                markHolidayBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+
             if (todaysClasses.length === 0) {
                 scheduleCardsEl.innerHTML = `<div class="card p-4 rounded-lg shadow-sm text-center text-sub">No classes scheduled for today.</div>`;
                 return;
@@ -291,7 +306,7 @@
                 const card = document.createElement('div');
                 card.className = 'card p-4 rounded-lg shadow-sm interactive-card';
                 card.id = `class-${cls.code}-${cls.period}`;
-                card.innerHTML = `<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between"><div class="mb-3 sm:mb-0"><p class="font-bold text-lg text-main">${cls.subject}</p><p class="text-sm text-sub">Period ${cls.period}${cls.room ? ` • Room: ${cls.room}` : ''}${cls.lab ? ' • Lab' : ''}</p></div><div class="flex space-x-2" data-code="${cls.code}" data-period="${cls.period}"><button class="btn-present attendance-btn flex-1 sm:flex-none py-2 px-4 text-sm font-semibold rounded-md border border-gray-300 transition-transform" data-status="present">Present</button><button class="btn-absent attendance-btn flex-1 sm:flex-none py-2 px-4 text-sm font-semibold rounded-md border border-gray-300 transition-transform" data-status="absent">Absent</button></div></div>`;
+                card.innerHTML = `<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between"><div class="mb-3 sm:mb-0"><p class="font-bold text-lg text-main">${cls.subject}</p><p class="text-sm text-sub">Period ${cls.period}${cls.room ? ` • Room: ${cls.room}` : ''}${cls.lab ? ' • Lab' : ''}</p></div><div class="flex space-x-2" data-code="${cls.code}" data-period="${cls.period}"><button class="btn-present attendance-btn flex-1 sm:flex-none py-2 px-4 text-sm font-semibold rounded-md border border-gray-300 transition-transform" data-status="present" ${disabledAttr}>Present</button><button class="btn-absent attendance-btn flex-1 sm:flex-none py-2 px-4 text-sm font-semibold rounded-md border border-gray-300 transition-transform" data-status="absent" ${disabledAttr}>Absent</button></div></div>`;
                 scheduleCardsEl.appendChild(card);
             });
         }
