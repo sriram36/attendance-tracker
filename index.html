@@ -92,6 +92,8 @@
             <!-- Attendance Statistics -->
             <section id="attendance-stats">
                 <h2 class="text-xl font-bold mb-4 text-main">Attendance Statistics</h2>
+                <!-- Container for the new Total Attendance card -->
+                <div id="total-stats-container" class="mb-4"></div>
                 <div id="stats-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </section>
         </main>
@@ -143,6 +145,7 @@
         const currentDateEl = document.getElementById('current-date');
         const scheduleCardsEl = document.getElementById('schedule-cards');
         const statsContainerEl = document.getElementById('stats-container');
+        const totalStatsContainerEl = document.getElementById('total-stats-container');
         const userIdDisplayEl = document.getElementById('user-id-display');
         const viewTimetableBtn = document.getElementById('view-timetable-btn');
         const timetableModal = document.getElementById('timetable-modal');
@@ -280,6 +283,7 @@
 
         function updateStatsUI() {
             statsContainerEl.innerHTML = '';
+            totalStatsContainerEl.innerHTML = '';
             const stats = {};
             const uniqueSubjects = allSubjects.filter((v,i,a)=>a.findIndex(t=>(t.code === v.code))===i);
 
@@ -294,8 +298,14 @@
                 }
             });
 
+            let overallTotalClasses = 0;
+            let overallPresentClasses = 0;
+
             Object.keys(stats).forEach(code => {
                 const s = stats[code];
+                overallTotalClasses += s.total;
+                overallPresentClasses += s.present;
+
                 const percentage = s.total > 0 ? (s.present / s.total) * 100 : 0;
                 let bgColor = percentage >= 75 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
 
@@ -320,6 +330,29 @@
                 `;
                 statsContainerEl.appendChild(card);
             });
+
+            if (overallTotalClasses > 0) {
+                const overallPercentage = (overallPresentClasses / overallTotalClasses) * 100;
+                let bgColor = overallPercentage >= 75 ? 'bg-green-500' : overallPercentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
+
+                const totalCard = document.createElement('div');
+                totalCard.className = 'card p-4 rounded-lg shadow-sm flex flex-col';
+                totalCard.innerHTML = `
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-main text-lg">Overall Attendance</p>
+                                <p class="text-sm text-sub">${overallPresentClasses} / ${overallTotalClasses} total classes attended</p>
+                            </div>
+                            <p class="font-bold text-xl text-main">${overallPercentage.toFixed(1)}%</p>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress-bar-bg w-full rounded-full h-2.5"><div class="${bgColor} h-2.5 rounded-full" style="width: ${overallPercentage}%"></div></div>
+                        </div>
+                    </div>
+                `;
+                totalStatsContainerEl.appendChild(totalCard);
+            }
         }
                 
         function updateTodaysScheduleUI() {
