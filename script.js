@@ -1,6 +1,6 @@
 // Firebase Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, query, onSnapshot, serverTimestamp, setDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
@@ -17,13 +17,20 @@ const firebaseConfig = {
 
 const appId = 'attendance-tracker-app'; // You can keep this as is
 
-// --- TIMETABLE DATA ---
+// --- TIMETABLE DATA (FIX IS HERE) ---
 const timetable = {
-    1: [ { period: 1, subject: 'DWDM Lab', code: 'DWDM LAB', lab: true },{ period: 2, subject: 'DWDM Lab', code: 'DWDM LAB', lab: true },{ period: 3, subject: 'DWDM Lab', code: 'DWDM LAB', lab: true },{ period: 4, subject: 'DWDM Lab', code: 'DWDM LAB', lab: true },{ period: 5, subject: 'Placement Training', code: 'PT', room: 'U-411' },{ period: 6, subject: 'Placement Training', code: 'PT', room: 'U-411' },{ period: 7, subject: 'Placement Training', code: 'PT', room: 'U-411' },{ period: 8, subject: 'Placement Training', code: 'PT', room: 'U-411' },],2: [ { period: 1, subject: 'DWDM', code: 'DWDM', room: 'U-411' },{ period: 2, subject: 'DWDM', code: 'DWDM', room: 'U-411' },{ period: 3, subject: 'IoT', code: 'IOT', room: 'U-411' },{ period: 4, subject: 'IoT', code: 'IOT', room: 'U-411' },{ period: 5, subject: 'Tinkering Lab', code: 'TINKERING', lab: true },{ period: 6, subject: 'Tinkering Lab', code: 'TINKERING', lab: true },{ period: 7, subject: 'Tinkering Lab', code: 'TINKERING', lab: true },{ period: 8, subject: 'Tinkering Lab', code: 'TINKERING', lab: true },],3: [ { period: 1, subject: 'OE-I', code: 'OE-1' },{ period: 2, subject: 'OE-I', code: 'OE-1' },{ period: 3, subject: 'Soft Skills', code: 'SOFTSKILLS', room: 'U-411' },{ period: 4, subject: 'Soft Skills', code: 'SOFTSKILLS', room: 'U-411' },{ period: 5, subject: 'MOOCS', code: 'MOOCS', room: 'TC' },{ period: 6, subject: 'MOOCS', code: 'MOOCS', room: 'TC' },],4: [ { period: 1, subject: 'FSD Lab', code: 'FSD LAB', lab: true },{ period: 2, subject: 'FSD Lab', code: 'FSD LAB', lab: true },{ period: 3, subject: 'FSD Lab', code: 'FSD LAB', lab: true },{ period: 4, subject: 'FSD Lab', code: 'FSD LAB', lab: true },{ period: 5, subject: 'CN', code: 'CN', room: 'TC' },{ period: 6, subject: 'CN', code: 'CN', room: 'TC' },],5: [ { period: 1, subject: 'QA', code: 'QA', room: 'U-411' },{ period: 2, subject: 'QA', code: 'QA', room: 'U-411' },{ period: 3, subject: 'CN', code: 'CN', room: 'U-411' },{ period: 4, subject: 'CN', code: 'CN', room: 'U-411' },{ period: 5, subject: 'OE-I', code: 'OE-1' },{ period: 6, subject: 'OE-I', code: 'OE-1' },{ period: 7, subject: 'MOOCS', code: 'MOOCS', room: 'U-411' },{ period: 8, subject: 'MOOCS', code: 'MOOCS', room: 'U-411' },],6: [ { period: 1, 'IoT', code: 'IOT', room: 'U-411' },{ period: 2, subject: 'IoT', code: 'IOT', room: 'U-411' },{ period: 3, subject: 'DWDM', code: 'DWDM', room: 'U-411' },{ period: 4, subject: 'DWDM', code: 'DWDM', room: 'U-411' },],0: []
+    1: [ { period: 1, subject: 'DWDM Lab', code: 'DWDM LAB', lab: true },{ period: 2, subject: 'DWDM Lab', code: 'DWDM LAB', lab: true },{ period: 3, subject: 'DWDM Lab', code: 'DWDM LAB', lab: true },{ period: 4, subject: 'DWDM Lab', code: 'DWDM LAB', lab: true },{ period: 5, subject: 'Placement Training', code: 'PT', room: 'U-411' },{ period: 6, subject: 'Placement Training', code: 'PT', room: 'U-411' },{ period: 7, subject: 'Placement Training', code: 'PT', room: 'U-411' },{ period: 8, subject: 'Placement Training', code: 'PT', room: 'U-411' },],
+    2: [ { period: 1, subject: 'DWDM', code: 'DWDM', room: 'U-411' },{ period: 2, subject: 'DWDM', code: 'DWDM', room: 'U-411' },{ period: 3, subject: 'IoT', code: 'IOT', room: 'U-411' },{ period: 4, subject: 'IoT', code: 'IOT', room: 'U-411' },{ period: 5, subject: 'Tinkering Lab', code: 'TINKERING', lab: true },{ period: 6, subject: 'Tinkering Lab', code: 'TINKERING', lab: true },{ period: 7, subject: 'Tinkering Lab', code: 'TINKERING', lab: true },{ period: 8, subject: 'Tinkering Lab', code: 'TINKERING', lab: true },],
+    3: [ { period: 1, subject: 'OE-I', code: 'OE-1' },{ period: 2, subject: 'OE-I', code: 'OE-1' },{ period: 3, subject: 'Soft Skills', code: 'SOFTSKILLS', room: 'U-411' },{ period: 4, subject: 'Soft Skills', code: 'SOFTSKILLS', room: 'U-411' },{ period: 5, subject: 'MOOCS', code: 'MOOCS', room: 'TC' },{ period: 6, subject: 'MOOCS', code: 'MOOCS', room: 'TC' },],
+    4: [ { period: 1, subject: 'FSD Lab', code: 'FSD LAB', lab: true },{ period: 2, subject: 'FSD Lab', code: 'FSD LAB', lab: true },{ period: 3, subject: 'FSD Lab', code: 'FSD LAB', lab: true },{ period: 4, subject: 'FSD Lab', code: 'FSD LAB', lab: true },{ period: 5, subject: 'CN', code: 'CN', room: 'TC' },{ period: 6, subject: 'CN', code: 'CN', room: 'TC' },],
+    5: [ { period: 1, subject: 'QA', code: 'QA', room: 'U-411' },{ period: 2, subject: 'QA', code: 'QA', room: 'U-411' },{ period: 3, subject: 'CN', code: 'CN', room: 'U-411' },{ period: 4, subject: 'CN', code: 'CN', room: 'U-411' },{ period: 5, subject: 'OE-I', code: 'OE-1' },{ period: 6, subject: 'OE-I', code: 'OE-1' },{ period: 7, subject: 'MOOCS', code: 'MOOCS', room: 'U-411' },{ period: 8, subject: 'MOOCS', code: 'MOOCS', room: 'U-411' },],
+    6: [ { period: 1, subject: 'IoT', code: 'IOT', room: 'U-411' },{ period: 2, subject: 'IoT', code: 'IOT', room: 'U-411' },{ period: 3, subject: 'DWDM', code: 'DWDM', room: 'U-411' },{ period: 4, subject: 'DWDM', code: 'DWDM', room: 'U-411' },],
+    0: []
 };
 const allSubjects = [...new Set(Object.values(timetable).flat().map(p => ({ code: p.code, name: p.subject })))];
 
 // --- DOM ELEMENTS ---
+const appContainer = document.getElementById('app-container');
 const htmlEl = document.documentElement;
 const currentDateEl = document.getElementById('current-date');
 const scheduleCardsEl = document.getElementById('schedule-cards');
@@ -50,6 +57,23 @@ let isTodayHoliday = false;
 
 // --- APP INITIALIZATION ---
 async function main() {
+    if (firebaseConfig.apiKey === "YOUR_API_KEY" || firebaseConfig.projectId === "YOUR_PROJECT_ID") {
+        appContainer.innerHTML = `<div class="p-8 max-w-2xl mx-auto bg-red-100 border-l-4 border-red-500 text-red-700">
+            <h2 class="font-bold text-xl mb-2">Action Required: Configuration Error</h2>
+            <p>You must paste your project's keys into the <strong>firebaseConfig</strong> object in the code for the app to work.</p>
+            <ol class="list-decimal list-inside mt-4 space-y-2">
+                <li>Go to your <a href="https://console.firebase.google.com/" class="underline" target="_blank">Firebase project</a>.</li>
+                <li>Go to <strong>Project settings</strong> (click the ⚙️ icon).</li>
+                <li>Under the "General" tab, find the "Your apps" section.</li>
+                <li>Click the "Config" radio button to see your keys.</li>
+                <li>Copy the entire <strong>firebaseConfig</strong> object.</li>
+                <li>Paste it into the code, replacing the placeholder object.</li>
+            </ol>
+         </div>`;
+        console.error("Firebase initialization failed: Placeholder values are still present in firebaseConfig.");
+        return;
+    }
+
     try {
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
@@ -69,17 +93,15 @@ async function main() {
         });
     } catch (error) {
         console.error("Firebase initialization failed:", error);
-        document.body.innerHTML = `<div class="p-4 text-red-600 bg-red-100 border border-red-400 rounded-md">Error: Firebase configuration is invalid. Please check the 'firebaseConfig' object in script.js.</div>`;
+        document.body.innerHTML = `<div class="p-4 text-red-600 bg-red-100 border border-red-400 rounded-md">Error: Firebase configuration is invalid. Please check the 'firebaseConfig' object.</div>`;
     }
 }
 
 async function authenticateAnonymously() {
     try {
-        // In a real app, you might use a pre-defined token. For this setup, anonymous sign-in is fine.
         await signInAnonymously(auth);
     } catch (error) {
         console.error("Authentication failed:", error);
-        document.body.innerHTML = `<div class="p-4 text-red-600">Error: Could not authenticate. The app cannot function.</div>`;
     }
 }
 
@@ -151,10 +173,10 @@ function renderFullTimetable() {
 function updateStatsUI() {
     statsContainerEl.innerHTML = '';
     const stats = {};
-    const uniqueSubjects = allSubjects.filter((v,i,a)=>a.findIndex(t=>(t.code === v.code))===i);
+    const uniqueSubjects = allSubjects.filter((v,i,a)=>a.findIndex(t=>(t && t.code === v.code))===i);
 
     uniqueSubjects.forEach(subj => {
-        stats[subj.code] = { name: subj.name, total: 0, present: 0 };
+        if(subj && subj.code) stats[subj.code] = { name: subj.name, total: 0, present: 0 };
     });
 
     allAttendanceData.forEach(record => {
