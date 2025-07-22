@@ -161,13 +161,13 @@
 
         // --- PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
         const firebaseConfig = {
-  apiKey: "AIzaSyBn7aLWWtpSPRqvYhSmBIyixBTdNHEd0JQ",
-  authDomain: "my-class-attendance-tracker.firebaseapp.com",
-  projectId: "my-class-attendance-tracker",
-  storageBucket: "my-class-attendance-tracker.firebasestorage.app",
-  messagingSenderId: "598768607049",
-  appId: "1:598768607049:web:e177677b8b6afbce108498"
-};
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
         // ---------------------------------------------
         
         const appId = 'attendance-tracker-app';
@@ -283,11 +283,10 @@
             const todaysClasses = timetable[dayOfWeek] || [];
             scheduleCardsEl.innerHTML = ''; 
 
-            // BUG FIX: Check if the date being rendered is actually today
             const today = new Date();
             const isToday = date.toDateString() === today.toDateString();
             const disabledAttr = isToday ? '' : 'disabled';
-            const holidayBtnDisabled = date > today; // Disable holiday button for future dates
+            const holidayBtnDisabled = date > today;
 
             markHolidayBtn.disabled = holidayBtnDisabled;
             if (holidayBtnDisabled) {
