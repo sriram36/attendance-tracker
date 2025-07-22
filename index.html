@@ -46,15 +46,51 @@
         /* Button Active States */
         .btn-present.active { background-color: #22c55e; color: white; border-color: #22c55e; }
         .btn-absent.active { background-color: #ef4444; color: white; border-color: #ef4444; }
+        
+        /* --- UI/UX Enhancements --- */
+        .interactive-card {
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        }
+        .interactive-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .interactive-button {
+            transition: transform 0.2s ease-out;
+        }
+        .interactive-button:hover {
+            transform: scale(1.05);
+        }
+        .attendance-btn:not(.active):hover {
+            background-color: var(--bg-interactive-hover);
+            transform: scale(1.03);
+        }
 
-        /* Modal Styles */
+        /* Modal Animation */
+        @keyframes fadeInScaleUp {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-overlay.active .modal-content {
+            animation: fadeInScaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
         .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 50; }
         .modal-overlay.active { display: flex; }
         .modal-content { background-color: var(--bg-secondary); max-width: 90vw; width: 500px; max-height: 90vh; display: flex; flex-direction: column; border-radius: 0.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         .modal-header { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .modal-close-btn { color: var(--text-secondary); font-size: 1.5rem; line-height: 1; cursor: pointer; }
-        .modal-close-btn:hover { color: var(--text-primary); }
+        .modal-close-btn { color: var(--text-secondary); font-size: 1.5rem; line-height: 1; cursor: pointer; transition: transform 0.2s; }
+        .modal-close-btn:hover { color: var(--text-primary); transform: rotate(90deg); }
         .modal-body { padding: 1rem; overflow-y: auto; }
+        
+        .view-history-btn .arrow-icon {
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            transform: translateX(-4px);
+        }
+        .view-history-btn:hover .arrow-icon {
+            opacity: 1;
+            transform: translateX(0);
+        }
     </style>
 </head>
 <body>
@@ -66,13 +102,13 @@
                 <p id="current-date" class="text-sub"></p>
             </div>
             <div class="flex items-center space-x-2 sm:space-x-4">
-                 <button id="mark-holiday-btn" class="card hover-bg-interactive text-sub font-semibold py-2 px-4 rounded-lg shadow-sm">
+                 <button id="mark-holiday-btn" class="card hover-bg-interactive text-sub font-semibold py-2 px-4 rounded-lg shadow-sm interactive-button">
                     <span class="hidden sm:inline">Holiday</span> <span class="sm:hidden">🎉</span>
                 </button>
-                 <button id="view-timetable-btn" class="card hover-bg-interactive text-sub font-semibold py-2 px-4 rounded-lg shadow-sm">
+                 <button id="view-timetable-btn" class="card hover-bg-interactive text-sub font-semibold py-2 px-4 rounded-lg shadow-sm interactive-button">
                     <i class="fas fa-calendar-alt"></i>
                 </button>
-                <button id="theme-toggle-btn" class="text-xl w-10 h-10 flex items-center justify-center rounded-full text-sub hover-bg-interactive">
+                <button id="theme-toggle-btn" class="text-xl w-10 h-10 flex items-center justify-center rounded-full text-sub hover-bg-interactive interactive-button">
                     <i class="fas fa-sun"></i>
                 </button>
             </div>
@@ -92,7 +128,6 @@
             <!-- Attendance Statistics -->
             <section id="attendance-stats">
                 <h2 class="text-xl font-bold mb-4 text-main">Attendance Statistics</h2>
-                <!-- Container for the new Total Attendance card -->
                 <div id="total-stats-container" class="mb-4"></div>
                 <div id="stats-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </section>
@@ -246,7 +281,7 @@
 
             todaysClasses.forEach(cls => {
                 const card = document.createElement('div');
-                card.className = 'card p-4 rounded-lg shadow-sm';
+                card.className = 'card p-4 rounded-lg shadow-sm interactive-card';
                 card.id = `class-${cls.code}-${cls.period}`;
                 
                 card.innerHTML = `
@@ -256,8 +291,8 @@
                             <p class="text-sm text-sub">Period ${cls.period}${cls.room ? ` • Room: ${cls.room}` : ''}${cls.lab ? ' • Lab' : ''}</p>
                         </div>
                         <div class="flex space-x-2" data-code="${cls.code}" data-period="${cls.period}">
-                            <button class="btn-present flex-1 sm:flex-none py-2 px-4 text-sm font-semibold rounded-md border border-gray-300 hover:bg-gray-100 transition" data-status="present">Present</button>
-                            <button class="btn-absent flex-1 sm:flex-none py-2 px-4 text-sm font-semibold rounded-md border border-gray-300 hover:bg-gray-100 transition" data-status="absent">Absent</button>
+                            <button class="btn-present attendance-btn flex-1 sm:flex-none py-2 px-4 text-sm font-semibold rounded-md border border-gray-300 transition-transform" data-status="present">Present</button>
+                            <button class="btn-absent attendance-btn flex-1 sm:flex-none py-2 px-4 text-sm font-semibold rounded-md border border-gray-300 transition-transform" data-status="absent">Absent</button>
                         </div>
                     </div>
                 `;
@@ -310,7 +345,7 @@
                 let bgColor = percentage >= 75 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
 
                 const card = document.createElement('div');
-                card.className = 'card p-4 rounded-lg shadow-sm flex flex-col';
+                card.className = 'card p-4 rounded-lg shadow-sm flex flex-col interactive-card';
                 card.innerHTML = `
                     <div class="flex-grow">
                         <div class="flex justify-between items-start">
@@ -324,8 +359,8 @@
                             <div class="progress-bar-bg w-full rounded-full h-2.5"><div class="${bgColor} h-2.5 rounded-full" style="width: ${percentage}%"></div></div>
                         </div>
                     </div>
-                    <button class="view-history-btn mt-4 w-full text-sm text-indigo-600 dark:text-indigo-400 hover:underline text-left" data-subject-code="${code}" data-subject-name="${s.name}">
-                        View History
+                    <button class="view-history-btn mt-4 w-full text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 text-left flex items-center" data-subject-code="${code}" data-subject-name="${s.name}">
+                        View History <span class="arrow-icon ml-2">→</span>
                     </button>
                 `;
                 statsContainerEl.appendChild(card);
@@ -336,7 +371,7 @@
                 let bgColor = overallPercentage >= 75 ? 'bg-green-500' : overallPercentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
 
                 const totalCard = document.createElement('div');
-                totalCard.className = 'card p-4 rounded-lg shadow-sm flex flex-col';
+                totalCard.className = 'card p-4 rounded-lg shadow-sm flex flex-col interactive-card';
                 totalCard.innerHTML = `
                     <div class="flex-grow">
                         <div class="flex justify-between items-start">
