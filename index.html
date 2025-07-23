@@ -464,8 +464,10 @@
             monthYearEl.textContent = `${calendarDate.toLocaleString('default', { month: 'long' })} ${year}`;
             const firstDayOfMonth = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const today = new Date();
             
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today's date to midnight for accurate comparison
+
             for (let i = 0; i < firstDayOfMonth; i++) {
                 calendarGrid.innerHTML += '<div></div>';
             }
@@ -494,9 +496,15 @@
                         isStruck = true;
                     }
                 }
+                
+                // BUG FIX: Only apply strikethrough if the date is not in the future
+                if (isStruck && date <= today) {
+                    dayEl.classList.add('strikethrough');
+                }
 
-                if (isStruck) dayEl.classList.add('strikethrough');
-                if (date.toDateString() === today.toDateString()) dayEl.classList.add('today');
+                if (date.toDateString() === today.toDateString()) {
+                    dayEl.classList.add('today');
+                }
                 
                 calendarGrid.appendChild(dayEl);
             }
