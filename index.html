@@ -67,13 +67,6 @@
         .modal-close-btn { color: var(--text-secondary); font-size: 1.5rem; line-height: 1; cursor: pointer; transition: transform 0.2s; }
         .modal-close-btn:hover { color: var(--text-primary); transform: rotate(90deg); }
         .modal-body { padding: 1rem; overflow-y: auto; }
-
-        /* Calendar Styles */
-        .calendar-day.strikethrough { text-decoration: line-through; color: var(--text-secondary); background-color: var(--bg-primary); }
-        .calendar-day.strikethrough.today { background-color: #fee2e2; } /* red-100 */
-        html.dark .calendar-day.strikethrough.today { background-color: #3f2121; }
-        .calendar-day.today { background-color: #bfdbfe; color: #1e3a8a; font-weight: bold; } /* blue-200 */
-        html.dark .calendar-day.today { background-color: #374151; color: #eff6ff; }
     </style>
 </head>
 <body>
@@ -90,9 +83,6 @@
                 </button>
                  <button id="view-timetable-btn" class="card hover-bg-interactive text-sub font-semibold py-2 px-4 rounded-lg shadow-sm interactive-button">
                     <i class="fas fa-calendar-alt"></i>
-                </button>
-                 <button id="view-calendar-btn" class="card hover-bg-interactive text-sub font-semibold py-2 px-4 rounded-lg shadow-sm interactive-button">
-                    <i class="fas fa-calendar-check"></i>
                 </button>
                 <button id="theme-toggle-btn" class="text-xl w-10 h-10 flex items-center justify-center rounded-full text-sub hover-bg-interactive interactive-button">
                     <i class="fas fa-sun"></i>
@@ -133,24 +123,6 @@
         <div id="history-modal" class="modal-overlay">
             <div class="modal-content"><div class="modal-header"><h3 id="history-modal-title" class="text-lg font-bold text-main">Attendance History</h3><button id="close-history-modal-btn" class="modal-close-btn">&times;</button></div><div id="history-modal-content" class="modal-body"></div></div>
         </div>
-        <div id="calendar-modal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="flex items-center">
-                        <button id="prev-month-btn" class="text-sub hover:text-main text-lg px-3 py-1 rounded-full hover-bg-interactive"><i class="fas fa-chevron-left"></i></button>
-                        <h3 id="calendar-month-year" class="text-lg font-bold text-center w-40 text-main"></h3>
-                        <button id="next-month-btn" class="text-sub hover:text-main text-lg px-3 py-1 rounded-full hover-bg-interactive"><i class="fas fa-chevron-right"></i></button>
-                    </div>
-                    <button id="close-calendar-modal-btn" class="modal-close-btn">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="grid grid-cols-7 gap-1 text-center text-sm text-sub mb-2">
-                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-                    </div>
-                    <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script type="module">
@@ -160,7 +132,7 @@
         import { getFirestore, collection, query, onSnapshot, serverTimestamp, setDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
-       const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyB-aRtuixCUiEGBF4VgPYmJNRc24kpeb3o",
   authDomain: "my-class-attendance-trac-f82cb.firebaseapp.com",
   projectId: "my-class-attendance-trac-f82cb",
@@ -197,23 +169,13 @@
         const historyModalTitle = document.getElementById('history-modal-title');
         const historyModalContent = document.getElementById('history-modal-content');
         const closeHistoryModalBtn = document.getElementById('close-history-modal-btn');
-        const calendarModal = document.getElementById('calendar-modal');
-        const viewCalendarBtn = document.getElementById('view-calendar-btn');
-        const closeCalendarModalBtn = document.getElementById('close-calendar-modal-btn');
-        const calendarGrid = document.getElementById('calendar-grid');
-        const monthYearEl = document.getElementById('calendar-month-year');
-        const prevMonthBtn = document.getElementById('prev-month-btn');
-        const nextMonthBtn = document.getElementById('next-month-btn');
 
         // --- FIREBASE & APP STATE ---
         let db, auth, userId;
         let allAttendanceData = [];
-        let allHolidays = {};
         let attendanceUnsubscribe = null;
-        let holidayUnsubscribe = null;
         let todaysHolidayUnsubscribe = null;
         let isTodayHoliday = false;
-        let calendarDate = new Date();
 
         // --- APP INITIALIZATION ---
         async function main() {
@@ -246,7 +208,6 @@
                         renderApp();
                         listenForAttendanceChanges();
                         listenForTodaysHolidayChange();
-                        listenForAllHolidays();
                     } else {
                         authenticateAnonymously();
                     }
@@ -392,10 +353,6 @@
                 allAttendanceData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateStatsUI();
                 updateTodaysScheduleUI();
-                // BUG FIX: Refresh the calendar if it's open
-                if (calendarModal.classList.contains('active')) {
-                    renderCalendar();
-                }
             }, console.error);
         }
 
@@ -406,21 +363,6 @@
             todaysHolidayUnsubscribe = onSnapshot(holidayRef, (docSnap) => {
                 isTodayHoliday = docSnap.exists();
                 renderApp();
-            });
-        }
-
-        function listenForAllHolidays() {
-            if (holidayUnsubscribe) holidayUnsubscribe();
-            const q = query(collection(db, `artifacts/${appId}/users/${userId}/holidays`));
-            holidayUnsubscribe = onSnapshot(q, (snapshot) => {
-                allHolidays = {};
-                snapshot.forEach(doc => {
-                    allHolidays[doc.id] = true;
-                });
-                // BUG FIX: Refresh the calendar if it's open
-                if (calendarModal.classList.contains('active')) {
-                    renderCalendar();
-                }
             });
         }
 
@@ -462,59 +404,6 @@
                 historyModalContent.innerHTML = html;
             }
             historyModal.classList.add('active');
-        }
-
-        // --- CALENDAR LOGIC ---
-        function renderCalendar() {
-            calendarGrid.innerHTML = '';
-            const year = calendarDate.getFullYear();
-            const month = calendarDate.getMonth();
-            monthYearEl.textContent = `${calendarDate.toLocaleString('default', { month: 'long' })} ${year}`;
-            const firstDayOfMonth = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Normalize today's date to midnight for accurate comparison
-
-            for (let i = 0; i < firstDayOfMonth; i++) {
-                calendarGrid.innerHTML += '<div></div>';
-            }
-
-            const attendanceByDate = allAttendanceData.reduce((acc, record) => {
-                acc[record.date] = (acc[record.date] || 0) + 1;
-                return acc;
-            }, {});
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayEl = document.createElement('div');
-                dayEl.textContent = day;
-                dayEl.className = 'calendar-day w-10 h-10 flex items-center justify-center rounded-full cursor-default';
-                
-                const date = new Date(year, month, day);
-                const dateString = date.toISOString().split('T')[0];
-                const dayOfWeek = date.getDay();
-
-                let isStruck = false;
-                if (allHolidays[dateString]) {
-                    isStruck = true;
-                } else {
-                    const classesForDay = timetable[dayOfWeek]?.length || 0;
-                    const attendanceForDay = attendanceByDate[dateString] || 0;
-                    if (classesForDay > 0 && attendanceForDay >= classesForDay) {
-                        isStruck = true;
-                    }
-                }
-                
-                if (isStruck && date <= today) {
-                    dayEl.classList.add('strikethrough');
-                }
-
-                if (date.toDateString() === today.toDateString()) {
-                    dayEl.classList.add('today');
-                }
-                
-                calendarGrid.appendChild(dayEl);
-            }
         }
 
         // --- THEME HANDLING ---
@@ -577,23 +466,6 @@
             
             closeHistoryModalBtn.addEventListener('click', () => historyModal.classList.remove('active'));
             historyModal.addEventListener('click', e => { if (e.target === historyModal) historyModal.classList.remove('active'); });
-
-            // Calendar Listeners
-            viewCalendarBtn.addEventListener('click', () => {
-                calendarDate = new Date(); // Reset to current month
-                renderCalendar();
-                calendarModal.classList.add('active');
-            });
-            closeCalendarModalBtn.addEventListener('click', () => calendarModal.classList.remove('active'));
-            calendarModal.addEventListener('click', e => { if (e.target === calendarModal) calendarModal.classList.remove('active'); });
-            prevMonthBtn.addEventListener('click', () => {
-                calendarDate.setMonth(calendarDate.getMonth() - 1);
-                renderCalendar();
-            });
-            nextMonthBtn.addEventListener('click', () => {
-                calendarDate.setMonth(calendarDate.getMonth() + 1);
-                renderCalendar();
-            });
         }
 
         // --- START THE APP ---
