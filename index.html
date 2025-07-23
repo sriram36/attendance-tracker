@@ -160,7 +160,7 @@
         import { getFirestore, collection, query, onSnapshot, serverTimestamp, setDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
-        const firebaseConfig = {
+       const firebaseConfig = {
   apiKey: "AIzaSyBn7aLWWtpSPRqvYhSmBIyixBTdNHEd0JQ",
   authDomain: "my-class-attendance-tracker.firebaseapp.com",
   projectId: "my-class-attendance-tracker",
@@ -392,6 +392,10 @@
                 allAttendanceData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateStatsUI();
                 updateTodaysScheduleUI();
+                // BUG FIX: Refresh the calendar if it's open
+                if (calendarModal.classList.contains('active')) {
+                    renderCalendar();
+                }
             }, console.error);
         }
 
@@ -413,6 +417,10 @@
                 snapshot.forEach(doc => {
                     allHolidays[doc.id] = true;
                 });
+                // BUG FIX: Refresh the calendar if it's open
+                if (calendarModal.classList.contains('active')) {
+                    renderCalendar();
+                }
             });
         }
 
@@ -497,7 +505,6 @@
                     }
                 }
                 
-                // BUG FIX: Only apply strikethrough if the date is not in the future
                 if (isStruck && date <= today) {
                     dayEl.classList.add('strikethrough');
                 }
